@@ -1,9 +1,13 @@
 package rabbitmq.demo;
 
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Configuration
 public class RabbitConfig {
@@ -37,5 +41,23 @@ public class RabbitConfig {
     @Bean
     public JacksonJsonMessageConverter messageConverter(){
         return new JacksonJsonMessageConverter();
+    }
+
+    @RestController
+    public static class PedidoController {
+        private final RabbitTemplate template;
+
+        public PedidoController(RabbitTemplate template) {
+            this.template = template;
+        }
+
+        @PostMapping
+        public ResponseEntity<Void> enviar(){
+            Pedido pedido=new Pedido();
+            pedido.setQuantidade(3);
+
+            template.convertAndSend(EXCHANGE_NAME, ROUTING_KEY_NAME);
+            return ResponseEntity.accepted().build();
+        }
     }
 }
